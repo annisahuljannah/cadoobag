@@ -1,0 +1,19 @@
+{
+  "name": "cadoobag",
+  "version": "1.0.0",
+  "private": true,
+  "description": "E-commerce platform for women's bags",
+  "scripts": {
+    "dev": "pnpm --parallel --filter \"./frontend\" --filter \"./backend\" dev",
+    "build": "pnpm --filter \"./backend\" build && pnpm --filter \"./frontend\" build",
+    "lint": "pnpm --parallel lint",
+    "format": "prettier --write \"**/*.{js,ts,tsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{js,ts,tsx,json,md}\""
+  },
+  "keywords": ["ecommerce", "nextjs", "prisma", "sqlite"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "prettier": "^3.2.5"
+  }
+}
