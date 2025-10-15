@@ -11,6 +11,8 @@ import productRoutes from './routes/products';
 import categoryRoutes from './routes/categories';
 import cartRoutes from './routes/carts';
 import orderRoutes from './routes/orders';
+import { locationRoutes } from './routes/locations';
+import { shippingRoutes } from './routes/shipping';
 
 const server = Fastify({
   logger: false,
@@ -43,6 +45,8 @@ server.register(productRoutes, { prefix: '/api' });
 server.register(categoryRoutes, { prefix: '/api' });
 server.register(cartRoutes, { prefix: '/api' });
 server.register(orderRoutes, { prefix: '/api' });
+server.register(locationRoutes, { prefix: '/api' });
+server.register(shippingRoutes, { prefix: '/api' });
 
 // Error handler
 server.setErrorHandler((error, request, reply) => {

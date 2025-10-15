@@ -73,3 +73,10 @@ export function formatErrorResponse(error: unknown) {
     },
   };
 }
+
+export function formatSuccessResponse<T>(data: T) {
+  return {
+    success: true,
+    data,
+  };
+}
