@@ -470,6 +470,92 @@ export default async function orderRoutes(fastify: FastifyInstance) {
     }
   });
 
+  // Get all orders (with optional filters)
+  fastify.get<{
+    Querystring: {
+      status?: string;
+      paymentStatus?: string;
+      limit?: string;
+      offset?: string;
+    };
+  }>('/orders', async (request, reply) => {
+    try {
+      const { status, paymentStatus, limit = '20', offset = '0' } = request.query;
+
+      const where: any = {};
+      
+      if (status) {
+        where.status = status;
+      }
+      
+      if (paymentStatus) {
+        where.payments = {
+          some: {
+            status: paymentStatus,
+          },
+        };
+      }
+
+      const [orders, total] = await Promise.all([
+        prisma.order.findMany({
+          where,
+          include: {
+            items: {
+              include: {
+                product: {
+                  select: {
+                    name: true,
+                    slug: true,
+                    images: {
+                      where: { isPrimary: true },
+                      take: 1,
+                    },
+                  },
+                },
+                variant: {
+                  select: {
+                    sku: true,
+                    size: true,
+                    color: true,
+                  },
+                },
+              },
+            },
+            payments: {
+              orderBy: { createdAt: 'desc' },
+              take: 1,
+            },
+            address: true,
+          },
+          orderBy: { createdAt: 'desc' },
+          take: parseInt(limit),
+          skip: parseInt(offset),
+        }),
+        prisma.order.count({ where }),
+      ]);
+
+      return reply.send({
+        success: true,
+        data: {
+          orders,
+          pagination: {
+            total,
+            limit: parseInt(limit),
+            offset: parseInt(offset),
+            hasMore: parseInt(offset) + orders.length < total,
+          },
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to fetch orders', { error });
+      return reply.status(500).send({
+        success: false,
+        message: 'Failed to fetch orders',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  });
+
   // Get order by ID
   fastify.get<{ Params: { id: string } }>('/orders/:id', async (request, reply) => {
     try {

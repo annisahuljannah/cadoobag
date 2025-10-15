@@ -84,6 +84,7 @@ model Product {
   reviews        Review[]
   categories     ProductCategory[]
   wishlists      Wishlist[]
+  orderItems     OrderItem[]
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
 }
@@ -157,27 +158,31 @@ model CartItem {
 // ==================== ORDERS ====================
 
 model Order {
-  id           String      @id @default(uuid())
-  userId       String
-  user         User        @relation(fields: [userId], references: [id])
-  addressId    Int
-  address      Address     @relation(fields: [addressId], references: [id])
-  status       String      @default("PENDING")
-  subtotal     Int
-  shippingCost Int
-  discount     Int         @default(0)
-  total        Int
-  courier      String?
-  service      String?
-  waybill      String?
-  voucherCode  String?
-  voucher      Voucher?    @relation(fields: [voucherCode], references: [code])
-  notes        String?
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-  items        OrderItem[]
-  payments     Payment[]
-  shipment     Shipment?
+  id                String      @id @default(uuid())
+  orderNumber       String      @unique
+  userId            String
+  user              User        @relation(fields: [userId], references: [id])
+  addressId         Int
+  address           Address     @relation(fields: [addressId], references: [id])
+  status            String      @default("PENDING")
+  paymentStatus     String      @default("UNPAID")
+  paymentMethod     String?
+  paymentReference  String?
+  subtotal          Int
+  shippingCost      Int
+  discount          Int         @default(0)
+  total             Int
+  courier           String?
+  service           String?
+  waybill           String?
+  voucherCode       String?
+  voucher           Voucher?    @relation(fields: [voucherCode], references: [code])
+  notes             String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  items             OrderItem[]
+  payments          Payment[]
+  shipment          Shipment?
 }
 
 model OrderItem {
@@ -185,6 +190,7 @@ model OrderItem {
   orderId    String
   order      Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   productId  Int
+  product    Product @relation(fields: [productId], references: [id])
   variantId  Int
   variant    Variant @relation(fields: [variantId], references: [id])
   name       String

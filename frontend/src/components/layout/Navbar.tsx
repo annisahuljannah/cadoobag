@@ -27,6 +27,12 @@ export function Navbar() {
               Produk
             </Link>
             <Link
+              href="/orders"
+              className="text-gray-700 hover:text-pink-primary transition-colors font-medium"
+            >
+              Pesanan
+            </Link>
+            <Link
               href={ROUTES.PRODUCTS}
               className="text-gray-700 hover:text-pink-primary transition-colors font-medium"
             >
