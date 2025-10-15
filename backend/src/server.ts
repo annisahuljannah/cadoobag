@@ -6,6 +6,10 @@ import { env } from './env';
 import { logger } from './utils/logger';
 import { formatErrorResponse, HttpError } from './utils/error';
 
+// Import providers
+import { rajaOngkir } from './providers/rajaongkir';
+import { tripay } from './providers/tripay';
+
 // Import routes
 import productRoutes from './routes/products';
 import categoryRoutes from './routes/categories';
@@ -13,6 +17,8 @@ import cartRoutes from './routes/carts';
 import orderRoutes from './routes/orders';
 import { locationRoutes } from './routes/locations';
 import { shippingRoutes } from './routes/shipping';
+import paymentRoutes from './routes/payments';
+import webhookRoutes from './routes/webhooks';
 
 const server = Fastify({
   logger: false,
@@ -47,6 +53,10 @@ server.register(cartRoutes, { prefix: '/api' });
 server.register(orderRoutes, { prefix: '/api' });
 server.register(locationRoutes, { prefix: '/api' });
 server.register(shippingRoutes, { prefix: '/api' });
+server.register(paymentRoutes, { prefix: '/api' });
+
+// Register webhook routes (no /api prefix)
+server.register(webhookRoutes);
 
 // Error handler
 server.setErrorHandler((error, request, reply) => {
@@ -69,7 +79,7 @@ server.setErrorHandler((error, request, reply) => {
 });
 
 // 404 handler
-server.setNotFoundHandler((request, reply) => {
+server.setNotFoundHandler((_request, reply) => {
   reply.status(404).send({
     error: {
       code: 'NOT_FOUND',
@@ -81,6 +91,11 @@ server.setNotFoundHandler((request, reply) => {
 // Start server
 const start = async () => {
   try {
+    // Initialize providers
+    logger.info('Initializing providers...');
+    rajaOngkir; // Initialize RajaOngkir provider
+    tripay; // Initialize Tripay provider
+    
     const port = parseInt(env.PORT, 10);
     await server.listen({ port, host: '0.0.0.0' });
     logger.info(`🚀 Server running on ${env.BACKEND_BASE_URL}`);
