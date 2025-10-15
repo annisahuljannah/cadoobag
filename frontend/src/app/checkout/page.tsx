@@ -49,6 +49,9 @@ export default function CheckoutPage() {
     etd: '',
   });
 
+  // Payment method state
+  const [paymentMethod, setPaymentMethod] = useState('');
+
   // Calculate total weight from cart items
   const totalWeight = useMemo(() => {
     // Assuming each product has baseWeightGram
@@ -108,12 +111,78 @@ export default function CheckoutPage() {
   };
 
   const handleSubmitOrder = async () => {
+    if (!shippingData.courier || !paymentMethod) {
+      alert('Mohon lengkapi semua informasi');
+      return;
+    }
+
     setIsProcessing(true);
-    // TODO: Implement order submission in Phase 2
-    setTimeout(() => {
-      alert('Fitur pembayaran akan diintegrasikan di Phase 2 (Tripay Payment Gateway)');
+    
+    try {
+      // Get subdistrictName from location data (we need to fetch it)
+      const subdistrictResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/locations/subdistricts/${addressForm.cityId}`
+      );
+      const subdistrictData = await subdistrictResponse.json();
+      const selectedSubdistrict = subdistrictData.data?.subdistricts?.find(
+        (s: any) => s.id === addressForm.subdistrictId
+      );
+
+      // Prepare order data
+      const orderData = {
+        items: items.map((item: any) => ({
+          variantId: item.variant.id,
+          qty: item.qty,
+        })),
+        shippingAddress: {
+          receiverName: addressForm.receiverName,
+          phone: addressForm.phone,
+          provinceId: addressForm.provinceId,
+          provinceName: 'Province', // TODO: Get from state
+          cityId: addressForm.cityId,
+          cityName: 'City', // TODO: Get from state
+          subdistrictId: addressForm.subdistrictId,
+          subdistrictName: selectedSubdistrict?.name || 'Subdistrict',
+          postalCode: addressForm.postalCode || '',
+          address: addressForm.address,
+          notes: addressForm.notes || '',
+        },
+        shippingMethod: {
+          courier: shippingData.courier,
+          service: shippingData.service,
+          cost: shippingData.cost,
+          etd: shippingData.etd || '',
+        },
+        paymentMethod,
+        voucherCode: undefined, // TODO: Add voucher support
+      };
+
+      // Create order
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/orders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Failed to create order');
+      }
+
+      // Clear cart
+      // TODO: Call cart clear API
+
+      // Redirect to payment page
+      window.location.href = `/payment/${result.data.payment.reference}`;
+    } catch (error) {
+      console.error('Failed to create order:', error);
+      alert(error instanceof Error ? error.message : 'Gagal membuat pesanan. Silakan coba lagi.');
+    } finally {
       setIsProcessing(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -316,29 +385,89 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
-                {/* Payment Method Placeholder */}
+                {/* Payment Method Selection */}
                 <div className="rounded-xl bg-white p-6 shadow-sm">
                   <h2 className="mb-4 text-xl font-bold text-gray-900">Metode Pembayaran</h2>
-                  <div className="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-8 text-center">
-                    <svg
-                      className="mx-auto mb-4 h-16 w-16 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1.5}
-                        d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                      />
-                    </svg>
-                    <h3 className="mb-2 text-lg font-semibold text-gray-900">
-                      Integrasi Tripay Payment Gateway - Phase 2
-                    </h3>
-                    <p className="text-gray-600">
-                      Multiple payment channels (Virtual Account, E-Wallet, QRIS, dll) akan tersedia di Phase 2
-                    </p>
+                  <div className="space-y-3">
+                    {/* Virtual Account Options */}
+                    <div className="space-y-2">
+                      <h3 className="text-sm font-semibold text-gray-700 mb-2">Virtual Account</h3>
+                      <label className="flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer hover:border-pink-primary hover:bg-pink-light/30 transition-colors">
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="BRIVA"
+                          checked={paymentMethod === 'BRIVA'}
+                          onChange={(e) => setPaymentMethod(e.target.value)}
+                          className="w-4 h-4 text-pink-primary"
+                        />
+                        <div className="flex items-center gap-3 flex-1">
+                          <div className="w-12 h-8 bg-gray-100 rounded flex items-center justify-center text-xs font-semibold text-gray-600">
+                            BRI
+                          </div>
+                          <span className="font-medium text-gray-900">BRI Virtual Account</span>
+                        </div>
+                      </label>
+                      <label className="flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer hover:border-pink-primary hover:bg-pink-light/30 transition-colors">
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="BNIVA"
+                          checked={paymentMethod === 'BNIVA'}
+                          onChange={(e) => setPaymentMethod(e.target.value)}
+                          className="w-4 h-4 text-pink-primary"
+                        />
+                        <div className="flex items-center gap-3 flex-1">
+                          <div className="w-12 h-8 bg-gray-100 rounded flex items-center justify-center text-xs font-semibold text-gray-600">
+                            BNI
+                          </div>
+                          <span className="font-medium text-gray-900">BNI Virtual Account</span>
+                        </div>
+                      </label>
+                      <label className="flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer hover:border-pink-primary hover:bg-pink-light/30 transition-colors">
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="MANDIRIVA"
+                          checked={paymentMethod === 'MANDIRIVA'}
+                          onChange={(e) => setPaymentMethod(e.target.value)}
+                          className="w-4 h-4 text-pink-primary"
+                        />
+                        <div className="flex items-center gap-3 flex-1">
+                          <div className="w-12 h-8 bg-gray-100 rounded flex items-center justify-center text-xs font-semibold text-gray-600">
+                            MANDIRI
+                          </div>
+                          <span className="font-medium text-gray-900">Mandiri Virtual Account</span>
+                        </div>
+                      </label>
+                    </div>
+
+                    {/* E-Wallet Options */}
+                    <div className="space-y-2 pt-4 border-t">
+                      <h3 className="text-sm font-semibold text-gray-700 mb-2">E-Wallet</h3>
+                      <label className="flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer hover:border-pink-primary hover:bg-pink-light/30 transition-colors">
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="QRIS"
+                          checked={paymentMethod === 'QRIS'}
+                          onChange={(e) => setPaymentMethod(e.target.value)}
+                          className="w-4 h-4 text-pink-primary"
+                        />
+                        <div className="flex items-center gap-3 flex-1">
+                          <div className="w-12 h-8 bg-gray-100 rounded flex items-center justify-center text-xs font-semibold text-gray-600">
+                            QRIS
+                          </div>
+                          <span className="font-medium text-gray-900">QRIS (Semua E-Wallet)</span>
+                        </div>
+                      </label>
+                    </div>
+
+                    {!paymentMethod && (
+                      <p className="text-sm text-gray-500 text-center py-2">
+                        Pilih metode pembayaran untuk melanjutkan
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -373,7 +502,7 @@ export default function CheckoutPage() {
               ) : (
                 <button
                   onClick={handleSubmitOrder}
-                  disabled={isProcessing}
+                  disabled={isProcessing || !paymentMethod}
                   className="btn-primary disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isProcessing ? 'Memproses...' : 'Bayar Sekarang'}

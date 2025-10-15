@@ -158,3 +158,55 @@ export interface Courier {
   name: string;
   services: CourierService[];
 }
+
+// Payment types (Tripay)
+export interface PaymentInstruction {
+  title: string;
+  steps: string[];
+}
+
+export interface PaymentTransaction {
+  reference: string;
+  merchant_ref: string;
+  payment_method: string;
+  payment_name: string;
+  amount: number;
+  fee_merchant: number;
+  fee_customer: number;
+  total_fee: number;
+  amount_received: number;
+  pay_code?: string;
+  pay_url?: string;
+  checkout_url: string;
+  status: 'UNPAID' | 'PAID' | 'FAILED' | 'EXPIRED' | 'REFUND';
+  expired_time: number;
+  instructions: PaymentInstruction[];
+  qr_code?: string;
+  qr_url?: string;
+}
+
+export interface OrderResponse {
+  order: {
+    id: number;
+    orderNumber: string;
+    status: string;
+    paymentStatus: string;
+    total: number;
+    grandTotal: number;
+    createdAt: string;
+  };
+  payment: {
+    reference: string;
+    method: string;
+    methodName: string;
+    amount: number;
+    fee: number;
+    total: number;
+    payCode?: string;
+    payUrl?: string;
+    checkoutUrl: string;
+    qrUrl?: string;
+    expiredAt: string;
+    instructions: PaymentInstruction[];
+  };
+}
