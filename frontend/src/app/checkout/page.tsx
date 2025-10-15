@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatPrice } from '@/lib/formatting';
 import { ROUTES } from '@/lib/constants';
 import { useCartStore } from '@/store/cart';
+import { LocationSelector } from '@/components/checkout/LocationSelector';
+import { CourierSelector } from '@/components/checkout/CourierSelector';
 
 interface CheckoutStep {
   id: number;
@@ -18,6 +20,9 @@ const STEPS: CheckoutStep[] = [
   { id: 3, title: 'Review & Pembayaran', description: 'Tinjau pesanan dan lakukan pembayaran' },
 ];
 
+// Origin city ID (Yogyakarta as default)
+const ORIGIN_CITY_ID = '501';
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, subtotal } = useCartStore();
@@ -28,13 +33,28 @@ export default function CheckoutPage() {
   const [addressForm, setAddressForm] = useState({
     receiverName: '',
     phone: '',
-    province: '',
-    city: '',
-    district: '',
+    provinceId: '',
+    cityId: '',
+    subdistrictId: '',
     postalCode: '',
     address: '',
     notes: '',
   });
+
+  // Shipping state
+  const [shippingData, setShippingData] = useState({
+    courier: '',
+    service: '',
+    cost: 0,
+    etd: '',
+  });
+
+  // Calculate total weight from cart items
+  const totalWeight = useMemo(() => {
+    // Assuming each product has baseWeightGram
+    // For demo, use 500g per item
+    return items.reduce((total, item) => total + (500 * item.qty), 0);
+  }, [items]);
 
   // Check if cart is empty
   if (items.length === 0) {
@@ -185,69 +205,31 @@ export default function CheckoutPage() {
                     </div>
                   </div>
 
+                  {/* Location Selector with RajaOngkir */}
                   <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-gray-700">
-                        Provinsi *
-                      </label>
-                      <input
-                        type="text"
-                        name="province"
-                        value={addressForm.province}
-                        onChange={handleAddressChange}
-                        className="input-field"
-                        placeholder="Akan menggunakan RajaOngkir di Phase 2"
-                        disabled
-                      />
-                      <p className="mt-1 text-xs text-gray-500">
-                        * Integrasi RajaOngkir di Phase 2
-                      </p>
-                    </div>
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-gray-700">
-                        Kota/Kabupaten *
-                      </label>
-                      <input
-                        type="text"
-                        name="city"
-                        value={addressForm.city}
-                        onChange={handleAddressChange}
-                        className="input-field"
-                        placeholder="Akan menggunakan RajaOngkir di Phase 2"
-                        disabled
-                      />
-                    </div>
+                    <LocationSelector
+                      provinceId={addressForm.provinceId}
+                      cityId={addressForm.cityId}
+                      subdistrictId={addressForm.subdistrictId}
+                      onProvinceChange={(id) => setAddressForm({ ...addressForm, provinceId: id })}
+                      onCityChange={(id) => setAddressForm({ ...addressForm, cityId: id })}
+                      onSubdistrictChange={(id) => setAddressForm({ ...addressForm, subdistrictId: id })}
+                    />
                   </div>
 
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-gray-700">
-                        Kecamatan *
-                      </label>
-                      <input
-                        type="text"
-                        name="district"
-                        value={addressForm.district}
-                        onChange={handleAddressChange}
-                        className="input-field"
-                        placeholder="Akan menggunakan RajaOngkir di Phase 2"
-                        disabled
-                      />
-                    </div>
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-gray-700">
-                        Kode Pos *
-                      </label>
-                      <input
-                        type="text"
-                        name="postalCode"
-                        value={addressForm.postalCode}
-                        onChange={handleAddressChange}
-                        className="input-field"
-                        placeholder="12345"
-                        required
-                      />
-                    </div>
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                      Kode Pos *
+                    </label>
+                    <input
+                      type="text"
+                      name="postalCode"
+                      value={addressForm.postalCode}
+                      onChange={handleAddressChange}
+                      className="input-field"
+                      placeholder="12345"
+                      required
+                    />
                   </div>
 
                   <div>
@@ -285,50 +267,17 @@ export default function CheckoutPage() {
             {currentStep === 2 && (
               <div className="rounded-xl bg-white p-6 shadow-sm">
                 <h2 className="mb-6 text-xl font-bold text-gray-900">Metode Pengiriman</h2>
-                <div className="space-y-4">
-                  <div className="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-8 text-center">
-                    <svg
-                      className="mx-auto mb-4 h-16 w-16 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1.5}
-                        d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"
-                      />
-                    </svg>
-                    <h3 className="mb-2 text-lg font-semibold text-gray-900">
-                      Integrasi RajaOngkir - Phase 2
-                    </h3>
-                    <p className="mb-4 text-gray-600">
-                      Perhitungan ongkir otomatis dengan berbagai pilihan kurir (JNE, TIKI, POS Indonesia, dll)
-                      akan tersedia di Phase 2
-                    </p>
-                    <div className="mx-auto max-w-md space-y-2 text-left text-sm text-gray-600">
-                      <div className="flex items-start">
-                        <svg className="mr-2 mt-0.5 h-5 w-5 flex-shrink-0 text-pink-primary" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                        <span>Real-time shipping cost calculation</span>
-                      </div>
-                      <div className="flex items-start">
-                        <svg className="mr-2 mt-0.5 h-5 w-5 flex-shrink-0 text-pink-primary" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                        <span>Multiple courier options (REG, YES, OKE, etc.)</span>
-                      </div>
-                      <div className="flex items-start">
-                        <svg className="mr-2 mt-0.5 h-5 w-5 flex-shrink-0 text-pink-primary" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                        <span>Estimated delivery time</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                
+                <CourierSelector
+                  origin={ORIGIN_CITY_ID}
+                  destination={addressForm.subdistrictId}
+                  weight={totalWeight}
+                  onSelect={(courier, service, cost, etd) => {
+                    setShippingData({ courier, service, cost, etd });
+                  }}
+                  selectedCourier={shippingData.courier}
+                  selectedService={shippingData.service}
+                />
               </div>
             )}
 
@@ -407,7 +356,16 @@ export default function CheckoutPage() {
               {currentStep < 3 ? (
                 <button
                   onClick={handleNextStep}
-                  disabled={currentStep === 1 && (!addressForm.receiverName || !addressForm.phone || !addressForm.address)}
+                  disabled={
+                    (currentStep === 1 && 
+                      (!addressForm.receiverName || 
+                       !addressForm.phone || 
+                       !addressForm.provinceId || 
+                       !addressForm.cityId || 
+                       !addressForm.subdistrictId || 
+                       !addressForm.address)) ||
+                    (currentStep === 2 && !shippingData.courier)
+                  }
                   className="btn-primary disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Lanjutkan →
@@ -435,7 +393,16 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>Ongkos Kirim</span>
-                  <span className="text-sm italic text-gray-400">Akan dihitung</span>
+                  {shippingData.cost > 0 ? (
+                    <div className="text-right">
+                      <div className="font-medium text-gray-900">{formatPrice(shippingData.cost)}</div>
+                      <div className="text-xs text-gray-500">
+                        {shippingData.courier.toUpperCase()} {shippingData.service}
+                      </div>
+                    </div>
+                  ) : (
+                    <span className="text-sm italic text-gray-400">Belum dipilih</span>
+                  )}
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>Diskon</span>
@@ -444,33 +411,54 @@ export default function CheckoutPage() {
                 <div className="border-t border-gray-200 pt-3">
                   <div className="flex justify-between">
                     <span className="text-lg font-bold text-gray-900">Total</span>
-                    <span className="text-lg font-bold text-purple-deep">{formatPrice(subtotal)}</span>
+                    <span className="text-lg font-bold text-purple-deep">
+                      {formatPrice(subtotal + shippingData.cost)}
+                    </span>
                   </div>
-                  <p className="mt-2 text-xs text-gray-500">
-                    * Total akhir akan termasuk ongkir setelah integrasi RajaOngkir
-                  </p>
+                  {shippingData.cost > 0 && shippingData.etd && (
+                    <p className="mt-2 text-xs text-gray-500">
+                      Estimasi tiba: {shippingData.etd} hari
+                    </p>
+                  )}
                 </div>
               </div>
 
+              {/* Shipping Info */}
+              {shippingData.cost > 0 && (
+                <div className="mt-4 rounded-lg bg-green-50 p-3">
+                  <div className="flex items-start">
+                    <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <div className="ml-2 text-xs text-green-700">
+                      <p className="font-medium">Metode pengiriman dipilih</p>
+                      <p className="mt-1">
+                        Paket Anda akan dikirim dengan {shippingData.courier.toUpperCase()} layanan {shippingData.service}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Phase 2 Features Info */}
               <div className="mt-6 rounded-lg bg-pink-light/30 p-4">
-                <h4 className="mb-2 text-sm font-semibold text-purple-deep">Coming in Phase 2:</h4>
+                <h4 className="mb-2 text-sm font-semibold text-purple-deep">Phase 2 Active:</h4>
                 <ul className="space-y-1 text-xs text-gray-600">
                   <li className="flex items-start">
-                    <span className="mr-2">🚚</span>
-                    <span>RajaOngkir shipping integration</span>
+                    <span className="mr-2">✅</span>
+                    <span>RajaOngkir shipping calculation</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="mr-2">💳</span>
-                    <span>Tripay payment gateway (VA, E-Wallet, QRIS)</span>
+                    <span className="mr-2">�</span>
+                    <span>Tripay payment gateway (coming soon)</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="mr-2">🏦</span>
-                    <span>Manual bank transfer option</span>
+                    <span className="mr-2">🔜</span>
+                    <span>Manual bank transfer</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="mr-2">🎫</span>
-                    <span>Voucher & discount codes</span>
+                    <span className="mr-2">🔜</span>
+                    <span>Voucher codes</span>
                   </li>
                 </ul>
               </div>

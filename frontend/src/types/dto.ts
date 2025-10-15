@@ -119,3 +119,42 @@ export interface Voucher {
   value: number;
   minSpend: number;
 }
+
+// Location types (RajaOngkir)
+export interface Province {
+  id: string;
+  name: string;
+}
+
+export interface City {
+  id: string;
+  provinceId: string;
+  province: string;
+  type: string;
+  name: string;
+  postalCode: string;
+}
+
+export interface Subdistrict {
+  id: string;
+  cityId: string;
+  city: string;
+  provinceId: string;
+  province: string;
+  type: string;
+  name: string;
+}
+
+export interface CourierService {
+  service: string;
+  description: string;
+  cost: number;
+  etd: string;
+  note: string;
+}
+
+export interface Courier {
+  code: string;
+  name: string;
+  services: CourierService[];
+}
