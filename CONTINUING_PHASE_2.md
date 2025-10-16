@@ -29,6 +29,8 @@ pnpm install
 ### 2. Setup Database
 ```bash
 cd backend
+pnpm run prisma:migrate
+# Or with pnpm shortcut:
 pnpm prisma:migrate
 ```
 

@@ -2,14 +2,17 @@
 
 This guide explains how to test Phase 2 features without real RajaOngkir and Tripay API credentials using mock data.
 
+> **⚠️ Important Note**: This document provides *example approaches* for testing without API keys. The code examples shown here are templates that you would need to create manually if you want to test without credentials. None of these files are included in the repository by default.
+
 ---
 
 ## 🎯 Overview
 
 While Phase 2 is complete, it requires external API credentials. For initial testing and development, you can:
-1. Use mock data for frontend development
+1. Use mock data for frontend development (requires manual setup)
 2. Test the UI/UX flow without backend calls
 3. Validate the integration structure
+4. Test with real credentials (recommended - see API_SETUP_GUIDE.md)
 
 ---
 
@@ -18,6 +21,8 @@ While Phase 2 is complete, it requires external API credentials. For initial tes
 Test the checkout flow with mock data without connecting to the backend.
 
 ### Step 1: Create Mock Data File
+
+**Note**: This is an optional file you need to create manually for testing.
 
 Create `frontend/src/lib/mockData.ts`:
 
@@ -115,6 +120,8 @@ export const mockPaymentChannels = [
 
 ### Step 2: Modify Hooks to Use Mock Data
 
+**Note**: This shows how you would modify the existing hook to support mock data. This is optional for testing.
+
 Update `frontend/src/hooks/useLocations.ts`:
 
 ```typescript
@@ -148,6 +155,8 @@ export function useProvinces() {
 
 ### Step 3: Enable Mock Mode
 
+**Note**: Create this file if it doesn't exist.
+
 In `frontend/.env.local`:
 
 ```env
@@ -171,6 +180,8 @@ NEXT_PUBLIC_API_URL=http://localhost:4000
 Create mock endpoints that return sample data without calling external APIs.
 
 ### Step 1: Create Mock Router
+
+**Note**: This is an optional approach. You would need to create this file manually.
 
 Create `backend/src/routes/mock/index.ts`:
 
@@ -244,6 +255,8 @@ export const mockRoutes: FastifyPluginAsync = async (fastify) => {
 
 ### Step 2: Register Mock Routes
 
+**Note**: This shows how you would modify the server file. This is optional.
+
 In `backend/src/server.ts`, add:
 
 ```typescript
@@ -270,6 +283,8 @@ NEXT_PUBLIC_API_URL=http://localhost:4000/api/mock
 ## 🧪 Option 3: Manual Testing Script
 
 Test the order flow with a curl script.
+
+**Note**: This is an example script you can create for testing. Create this file manually.
 
 Create `backend/test-order-flow.sh`:
 
@@ -369,8 +384,11 @@ Test these without API credentials:
 ## 🐛 Testing Individual Components
 
 ### Test LocationSelector
+
+**Note**: This is an example test page you can create. Create this file manually.
+
 ```tsx
-// In frontend/src/app/test-components/page.tsx
+// Create: frontend/src/app/test-components/page.tsx
 'use client';
 
 import { useState } from 'react';
