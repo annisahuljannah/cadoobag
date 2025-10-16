@@ -11,6 +11,7 @@ import { rajaOngkir } from './providers/rajaongkir';
 import { tripay } from './providers/tripay';
 
 // Import routes
+import authRoutes from './routes/auth';
 import productRoutes from './routes/products';
 import categoryRoutes from './routes/categories';
 import cartRoutes from './routes/carts';
@@ -48,6 +49,7 @@ server.get('/health', async () => {
 });
 
 // Register API routes
+server.register(authRoutes, { prefix: '/api/auth' });
 server.register(productRoutes, { prefix: '/api' });
 server.register(categoryRoutes, { prefix: '/api' });
 server.register(cartRoutes, { prefix: '/api' });

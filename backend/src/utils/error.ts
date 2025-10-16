@@ -45,6 +45,16 @@ export class InternalServerError extends HttpError {
   }
 }
 
+export class ValidationError extends Error {
+  constructor(
+    message: string,
+    public details?: Record<string, unknown>
+  ) {
+    super(message);
+    this.name = 'ValidationError';
+  }
+}
+
 export function formatErrorResponse(error: unknown) {
   if (error instanceof HttpError) {
     return {

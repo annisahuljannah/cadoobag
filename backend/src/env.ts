@@ -15,7 +15,18 @@ const envSchema = z.object({
   TRIPAY_BASE_URL: z.string(),
   FRONTEND_BASE_URL: z.string(),
   BACKEND_BASE_URL: z.string(),
-  JWT_SECRET: z.string().optional(),
+  // JWT Configuration
+  JWT_SECRET: z.string().default('dev-secret-change-in-production'),
+  JWT_ACCESS_EXPIRY: z.string().default('15m'),
+  JWT_REFRESH_EXPIRY: z.string().default('7d'),
+  // Email Configuration
+  SMTP_HOST: z.string().default('smtp.gmail.com'),
+  SMTP_PORT: z.string().default('587'),
+  SMTP_USER: z.string().default(''),
+  SMTP_PASS: z.string().default(''),
+  SMTP_FROM: z.string().default('noreply@cadoobag.com'),
+  SMTP_FROM_NAME: z.string().default('Cadoobag'),
+  // Upload Configuration
   UPLOAD_DIR: z.string().default('./uploads'),
   MAX_FILE_SIZE: z.string().default('5242880'),
 });
