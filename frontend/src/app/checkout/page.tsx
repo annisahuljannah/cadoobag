@@ -175,8 +175,14 @@ export default function CheckoutPage() {
       // Clear cart
       // TODO: Call cart clear API
 
-      // Redirect to payment page
-      window.location.href = `/payment/${result.data.payment.reference}`;
+      // Redirect to appropriate payment page
+      if (result.data.payment.method === 'MANUAL_TRANSFER') {
+        // Redirect to manual payment upload page
+        window.location.href = `/payment/manual/${result.data.payment.reference}`;
+      } else {
+        // Redirect to Tripay payment instructions
+        window.location.href = `/payment/${result.data.payment.reference}`;
+      }
     } catch (error) {
       console.error('Failed to create order:', error);
       alert(error instanceof Error ? error.message : 'Gagal membuat pesanan. Silakan coba lagi.');
@@ -459,6 +465,32 @@ export default function CheckoutPage() {
                             QRIS
                           </div>
                           <span className="font-medium text-gray-900">QRIS (Semua E-Wallet)</span>
+                        </div>
+                      </label>
+                    </div>
+
+                    {/* Manual Transfer Option */}
+                    <div className="space-y-2 pt-4 border-t">
+                      <h3 className="text-sm font-semibold text-gray-700 mb-2">Transfer Bank Manual</h3>
+                      <label className="flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer hover:border-pink-primary hover:bg-pink-light/30 transition-colors">
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="MANUAL_TRANSFER"
+                          checked={paymentMethod === 'MANUAL_TRANSFER'}
+                          onChange={(e) => setPaymentMethod(e.target.value)}
+                          className="w-4 h-4 text-pink-primary"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-1">
+                            <div className="w-12 h-8 bg-gray-100 rounded flex items-center justify-center text-xs font-semibold text-gray-600">
+                              BANK
+                            </div>
+                            <span className="font-medium text-gray-900">Transfer Bank Manual</span>
+                          </div>
+                          <p className="text-xs text-gray-600 ml-15">
+                            Transfer manual ke rekening toko, upload bukti transfer untuk verifikasi
+                          </p>
                         </div>
                       </label>
                     </div>

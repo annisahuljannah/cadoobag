@@ -203,20 +203,25 @@ model OrderItem {
 // ==================== PAYMENTS ====================
 
 model Payment {
-  id       String    @id @default(uuid())
-  orderId  String
-  order    Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  method   String
-  channel  String?
-  provider String?
-  amount   Int
-  status   String    @default("PENDING")
-  refNo    String?   @unique
-  vaNo     String?
-  paidAt   DateTime?
-  meta     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String    @id @default(uuid())
+  orderId       String
+  order         Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  method        String
+  channel       String?
+  provider      String?
+  amount        Int
+  status        String    @default("PENDING")
+  refNo         String?   @unique
+  vaNo          String?
+  paidAt        DateTime?
+  meta          String?
+  proofImageUrl String?
+  verifiedBy    String?
+  verifiedAt    DateTime?
+  rejectedAt    DateTime?
+  rejectionNote String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
 // ==================== SHIPMENTS ====================

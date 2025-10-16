@@ -19,6 +19,7 @@ import { locationRoutes } from './routes/locations';
 import { shippingRoutes } from './routes/shipping';
 import paymentRoutes from './routes/payments';
 import webhookRoutes from './routes/webhooks';
+import manualPaymentRoutes from './routes/manual-payment';
 
 const server = Fastify({
   logger: false,
@@ -54,6 +55,7 @@ server.register(orderRoutes, { prefix: '/api' });
 server.register(locationRoutes, { prefix: '/api' });
 server.register(shippingRoutes, { prefix: '/api' });
 server.register(paymentRoutes, { prefix: '/api' });
+server.register(manualPaymentRoutes, { prefix: '/api' });
 
 // Register webhook routes (no /api prefix)
 server.register(webhookRoutes);

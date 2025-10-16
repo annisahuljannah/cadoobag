@@ -241,18 +241,26 @@ export default async function orderRoutes(fastify: FastifyInstance) {
 
       const total = calculateTotal(subtotal, body.shippingMethod.cost, discount);
 
-      // Step 3: Validate payment method
-      const paymentChannel = await tripay.getPaymentChannel(body.paymentMethod);
-      if (!paymentChannel) {
-        throw new BadRequestError(
-          `Payment method '${body.paymentMethod}' is not available`,
-          'INVALID_PAYMENT_METHOD'
-        );
-      }
+      // Step 3: Validate payment method and calculate fees
+      let paymentFee = 0;
+      let grandTotal = total;
+      let paymentChannel = null;
 
-      // Calculate payment fee
-      const paymentFee = tripay.calculateFee(total, paymentChannel);
-      const grandTotal = total + paymentFee;
+      if (body.paymentMethod !== 'MANUAL_TRANSFER') {
+        // For Tripay payment methods
+        paymentChannel = await tripay.getPaymentChannel(body.paymentMethod);
+        if (!paymentChannel) {
+          throw new BadRequestError(
+            `Payment method '${body.paymentMethod}' is not available`,
+            'INVALID_PAYMENT_METHOD'
+          );
+        }
+
+        // Calculate payment fee
+        paymentFee = tripay.calculateFee(total, paymentChannel);
+        grandTotal = total + paymentFee;
+      }
+      // Manual transfer has no additional fees
 
       // Step 4: Generate unique order reference
       const timestamp = Date.now();
@@ -346,7 +354,50 @@ export default async function orderRoutes(fastify: FastifyInstance) {
         return newOrder;
       });
 
-      // Step 6: Create payment transaction with Tripay
+      // Step 6: Create payment transaction
+      if (body.paymentMethod === 'MANUAL_TRANSFER') {
+        // For manual transfer, create a simple payment record
+        await prisma.payment.create({
+          data: {
+            orderId: order.id,
+            method: 'MANUAL_TRANSFER',
+            channel: 'BANK_TRANSFER',
+            provider: 'MANUAL',
+            amount: grandTotal,
+            status: 'PENDING',
+            refNo: merchantRef,
+          },
+        });
+
+        logger.info('Manual transfer payment created', {
+          orderId: order.id,
+          amount: grandTotal,
+        });
+
+        return reply.status(201).send({
+          success: true,
+          message: 'Order created successfully',
+          data: {
+            order: {
+              id: order.id,
+              orderNumber: order.orderNumber,
+              status: order.status,
+              paymentStatus: order.paymentStatus,
+              total: order.total,
+              grandTotal: order.grandTotal,
+              createdAt: order.createdAt,
+            },
+            payment: {
+              method: 'MANUAL_TRANSFER',
+              reference: merchantRef,
+              amount: grandTotal,
+              requiresProof: true,
+            },
+          },
+        });
+      }
+
+      // For Tripay payment methods
       try {
         const tripayTransaction = await tripay.createTransaction({
           method: body.paymentMethod,
@@ -559,9 +610,9 @@ export default async function orderRoutes(fastify: FastifyInstance) {
   // Get order by ID
   fastify.get<{ Params: { id: string } }>('/orders/:id', async (request, reply) => {
     try {
-      const orderId = parseInt(request.params.id);
+      const orderId = request.params.id;
 
-      if (isNaN(orderId)) {
+      if (!orderId) {
         throw new BadRequestError('Invalid order ID');
       }
 
