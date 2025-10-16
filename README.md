@@ -1,6 +1,6 @@
 # 🛍️ Cadoobag - E-Commerce Tas Wanita
 
-> **Status**: Phase 1 ✅ COMPLETED | Phase 2 🔜 IN PLANNING
+> **Status**: Phase 1 ✅ COMPLETED | Phase 2 ✅ CODE COMPLETE (Needs API Keys)
 
 Platform e-commerce modern untuk penjualan tas wanita dengan fitur lengkap: katalog produk, keranjang belanja, checkout, integrasi RajaOngkir, dan Tripay payment gateway.
 
@@ -12,8 +12,8 @@ Platform e-commerce modern untuk penjualan tas wanita dengan fitur lengkap: kata
 |-------|--------|----------|------------|
 | **Phase 0** | ✅ Done | Infrastructure setup | 100% |
 | **Phase 1** | ✅ Done | Catalog & Cart | 100% |
-| **Phase 2** | � Next | Shipping & Payment | 0% |
-| **Phase 3** | 🔮 Future | Admin Dashboard | 0% |
+| **Phase 2** | � Code Complete | Shipping & Payment | 95% (needs API keys) |
+| **Phase 3** | 🔮 Next | Admin Dashboard | 20% (payment verification done) |
 
 ---
 
